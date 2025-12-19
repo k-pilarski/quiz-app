@@ -68,7 +68,7 @@ function renderStartScreen() {
         QuizApp 🧠
       </h1>
       <p class="text-gray-600 text-lg">
-        Test your computer knowledge!<br>
+        Test your knowledge!<br>
       </p>
       <p class="text-gray-600 mb-8 text-lg">
         Configure your settings below.
