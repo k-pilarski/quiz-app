@@ -3,6 +3,61 @@ import './style.css'
 // 1. DOM Element Reference
 const app = document.getElementById('js--app-id');
 
+// 2. APPLICATION STATE (Data Store)
+let gameState = {
+  questions: [],        // Array to store fetched questions
+  currentQuestionIndex: 0,
+  score: 0,
+  config: {
+    amount: 10,
+    difficulty: 'medium',
+    category: 18 // ID 18 = Science: Computers
+  }
+};
+
+// --- API FUNCTIONS ---
+
+async function fetchQuestions() {
+  const { amount, difficulty, category } = gameState.config;
+  const url = `https://opentdb.com/api.php?amount=${amount}&difficulty=${difficulty}&category=${category}&type=multiple`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    // Log the full response to debug
+    console.log('API Raw Response:', data);
+
+    // Code 0 means Success
+    if (data.response_code === 0) {
+      gameState.questions = data.results;
+      console.log('✅ Questions fetched:', gameState.questions);
+      return true;
+    } 
+    // Code 5 means Rate Limit (Too many requests)
+    else if (data.response_code === 5) {
+      console.warn('⚠️ Rate Limit! You are clicking too fast.');
+      alert('Too many requests! 🛑\nPlease wait 5 seconds before starting again.');
+      return false;
+    }
+    // Code 1 means No Results (Not enough questions in DB)
+    else if (data.response_code === 1) {
+      console.warn('⚠️ Not enough questions for these settings.');
+      alert(`Not enough questions found for "${difficulty}".\nTry selecting fewer questions or a different difficulty.`);
+      return false;
+    }
+    else {
+      alert('API Error code: ' + data.response_code);
+      return false;
+    }
+
+  } catch (error) {
+    console.error('❌ Network Error:', error);
+    alert('Failed to connect to the quiz server. Check your internet.');
+    return false;
+  }
+}
+
 // --- VIEW RENDERING FUNCTIONS ---
 
 // A. Start Screen
@@ -47,9 +102,37 @@ function renderStartScreen() {
   `;
 
   // Event Listener for Start Button
-  document.getElementById('js--start-btn-id').addEventListener('click', () => {
-    console.log('Start clicked! Switching view...');
-    renderGameScreen();
+  document.getElementById('js--start-btn-id').addEventListener('click', async () => {
+    const btn = document.getElementById('js--start-btn-id');
+    
+    // 1. Get values from inputs
+    const difficultySelect = document.getElementById('js--difficulty-id');
+    const amountSelect = document.getElementById('js--amount-id');
+
+    gameState.config.difficulty = difficultySelect.value;
+    gameState.config.amount = parseInt(amountSelect.value);
+
+    // 2. UI Loading State (User Experience!)
+    const originalText = btn.textContent;
+    btn.textContent = 'Loading Questions... ⏳';
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+    // 3. Fetch Data
+    const success = await fetchQuestions();
+
+    // 4. Start Game if success
+    if (success) {
+        // Reset game state for new game
+        gameState.currentQuestionIndex = 0;
+        gameState.score = 0;
+        renderGameScreen();
+    } else {
+        // Reset button if failed
+        btn.textContent = originalText;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
   });
 }
 
