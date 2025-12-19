@@ -10,8 +10,8 @@ let gameState = {
   score: 0,
   config: {
     amount: 10,
-    difficulty: 'medium',
-    category: 18 // ID 18 = Science: Computers
+    difficulty: 'easy',
+    category: 9 // ID 18 = Science: Computers
   }
 };
 
@@ -74,6 +74,18 @@ function renderStartScreen() {
         Configure your settings below.
       </p>
       
+      <div class="space-y-4 mb-8 text-left">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <select id="js--category-id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 bg-gray-50 border">
+            <option value="9">General Knowledge 🔎</option>  
+            <option value="10">Books 📖</option> 
+            <option value="15">Video Games 🎮</option> 
+            <option value="18">Computer Science 💻</option>
+            <option value="19">Mathematics 🧮</option>
+            <option value="22">Geography 🌍</option>
+          </select>
+        </div>    
 
       <div class="space-y-4 mb-8 text-left">
         <div>
@@ -108,9 +120,11 @@ function renderStartScreen() {
     // 1. Get values from inputs
     const difficultySelect = document.getElementById('js--difficulty-id');
     const amountSelect = document.getElementById('js--amount-id');
+    const categorySelect = document.getElementById('js--category-id');
 
     gameState.config.difficulty = difficultySelect.value;
     gameState.config.amount = parseInt(amountSelect.value);
+    gameState.config.category = categorySelect.value;
 
     // 2. UI Loading State (User Experience!)
     const originalText = btn.textContent;
