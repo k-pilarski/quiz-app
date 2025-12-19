@@ -8,6 +8,7 @@ let gameState = {
   questions: [],        // Array to store fetched questions
   currentQuestionIndex: 0,
   score: 0,
+  timer: null,
   config: {
     amount: 10,
     difficulty: 'easy',
@@ -25,13 +26,10 @@ async function fetchQuestions() {
     const response = await fetch(url);
     const data = await response.json();
     
-    // Log the full response to debug
-    console.log('API Raw Response:', data);
 
     // Code 0 means Success
     if (data.response_code === 0) {
       gameState.questions = data.results;
-      console.log('✅ Questions fetched:', gameState.questions);
       return true;
     } 
     // Code 5 means Rate Limit (Too many requests)
@@ -153,51 +151,55 @@ function renderStartScreen() {
 // --- GAME LOGIC ---
 
 function handleAnswer(selectedBtn, isCorrect) {
+  // 1. STOP THE TIMER IMMEDIATELY!
+  clearInterval(gameState.timer);
+
   const allButtons = document.querySelectorAll('.answer-btn');
   
-  // 1. Disable all buttons to prevent double clicking
+  // 2. Disable all buttons
   allButtons.forEach(btn => {
     btn.disabled = true;
     btn.classList.add('cursor-not-allowed', 'opacity-60');
   });
 
-  // 2. Highlight selected answer
-  if (isCorrect) {
-    selectedBtn.classList.remove('bg-gray-100', 'hover:bg-indigo-50');
-    selectedBtn.classList.add('bg-green-500', 'text-white', 'border-green-600');
-    gameState.score++;
+  // 3. Highlight selected answer (ONLY if a button was clicked)
+  if (selectedBtn) {
+    if (isCorrect) {
+      selectedBtn.classList.remove('bg-gray-100', 'hover:bg-indigo-50');
+      selectedBtn.classList.add('bg-green-500', 'text-white', 'border-green-600');
+      gameState.score++;
+    } else {
+      selectedBtn.classList.remove('bg-gray-100', 'hover:bg-indigo-50');
+      selectedBtn.classList.add('bg-red-500', 'text-white', 'border-red-600');
+    }
   } else {
-    selectedBtn.classList.remove('bg-gray-100', 'hover:bg-indigo-50');
-    selectedBtn.classList.add('bg-red-500', 'text-white', 'border-red-600');
+    // Time is up scenario - optional: highlight the correct answer here if you want
+    // For now, we just move on.
   }
 
-  // 3. Wait and go to next question
+  // 4. Wait and go to next question
   setTimeout(() => {
     gameState.currentQuestionIndex++;
     
-    // Check if there are more questions
     if (gameState.currentQuestionIndex < gameState.questions.length) {
       renderGameScreen();
     } else {
       renderEndScreen();
     }
-  }, 1500); // 1.5 second delay
+  }, 1500); 
 }
 
 // B. Game Screen (Dynamic)
 function renderGameScreen() {
   const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
   
-  // Combine correct and incorrect answers into one array
   const answers = [
     { text: currentQuestion.correct_answer, correct: true },
     ...currentQuestion.incorrect_answers.map(ans => ({ text: ans, correct: false }))
   ];
 
-  // Shuffle the answers so the correct one isn't always first
   shuffleArray(answers);
 
-  // Calculate Progress %
   const progressPercent = ((gameState.currentQuestionIndex + 1) / gameState.config.amount) * 100;
 
   app.innerHTML = `
@@ -207,8 +209,16 @@ function renderGameScreen() {
         <span class="text-indigo-600">Score: ${gameState.score}</span>
       </div>
       
-      <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+      <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
         <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+      </div>
+      
+      <div class="mb-4 text-sm text-gray-500 font-medium">
+        <span>Time to answer:</span>
+      </div>
+      
+      <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+        <div id="js--timer-bar" class="bg-green-500 h-2.5 rounded-full transition-colors duration-500 ease-linear" style="width: 100%"></div>
       </div>
 
       <h2 class="text-2xl font-bold text-gray-800 mb-8 leading-tight">
@@ -227,14 +237,15 @@ function renderGameScreen() {
     </div>
   `;
 
-  // Attach Event Listeners to the new dynamic buttons
   document.querySelectorAll('.answer-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      // "true" comes as a string from data attribute, so we compare strings
       const isCorrect = e.currentTarget.dataset.correct === 'true';
       handleAnswer(e.currentTarget, isCorrect);
     });
   });
+
+  // START THE TIMER!
+  startTimer();
 }
 
 // C. End Screen (Dynamic)
@@ -269,6 +280,43 @@ function shuffleArray(array) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+function startTimer() {
+  if (gameState.timer) clearInterval(gameState.timer);
+
+  const totalTime = 10; // seconds
+  let timeLeft = totalTime;
+  const timerBar = document.getElementById('js--timer-bar');
+
+  gameState.timer = setInterval(() => {
+    timeLeft -= 0.1;
+    const percent = (timeLeft / totalTime) * 100;
+    
+    if (timerBar) {
+      timerBar.style.width = `${percent}%`;
+
+      // --- DYNAMIC COLOR CHANGE ---
+      // 1. Clean up old classes
+      timerBar.classList.remove('bg-green-500', 'bg-yellow-400', 'bg-orange-500', 'bg-red-600');
+
+      // 2. Add new class based on percentage
+      if (percent > 75) {
+        timerBar.classList.add('bg-green-500');   // 100% - 66% (Bezpiecznie)
+      } else if (percent > 50) {
+        timerBar.classList.add('bg-yellow-400');  // 66% - 33% (Ostrzeżenie)
+      } else if (percent > 25) {
+        timerBar.classList.add('bg-orange-500');  // 33% - 15% (Gorąco!)
+      } else {
+        timerBar.classList.add('bg-red-600');     // < 15% (Koniec!)
+      }
+    }
+
+    if (timeLeft <= 0) {
+      clearInterval(gameState.timer);
+      handleAnswer(null, false);
+    }
+  }, 100);
 }
 
 // --- APP INITIALIZATION ---
