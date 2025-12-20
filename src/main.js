@@ -78,10 +78,15 @@ function renderStartScreen() {
           <select id="js--category-id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 bg-gray-50 border">
             <option value="9">General Knowledge 🔎</option>  
             <option value="10">Books 📖</option> 
+            <option value="11">Film 📺</option> 
+            <option value="12">Music 🎵</option> 
             <option value="15">Video Games 🎮</option> 
             <option value="18">Computer Science 💻</option>
             <option value="19">Mathematics 🧮</option>
+            <option value="20">Mythology 🧜‍♀️</option>
             <option value="22">Geography 🌍</option>
+            <option value="23">History 🤴</option>
+            <option value="27">Animals 🐕</option>
           </select>
         </div>    
 
