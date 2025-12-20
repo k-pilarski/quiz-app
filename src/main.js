@@ -156,9 +156,10 @@ function renderStartScreen() {
 // --- GAME LOGIC ---
 
 function handleAnswer(selectedBtn, isCorrect) {
-  // 1. STOP THE TIMER IMMEDIATELY!
-  clearInterval(gameState.timer);
-
+  // 1. STOP TIMER & REMOVE FOCUS (FIX iOS)
+  if (gameState.timer) clearInterval(gameState.timer);
+  if (selectedBtn) selectedBtn.blur();
+  
   const allButtons = document.querySelectorAll('.answer-btn');
   
   // 2. Disable all buttons
@@ -234,7 +235,7 @@ function renderGameScreen() {
         ${answers.map(answer => `
           <button 
             data-correct="${answer.correct}"
-            class="answer-btn w-full bg-gray-100 hover:bg-indigo-50 border-2 border-transparent hover:border-indigo-200 p-4 rounded-xl text-left transition font-medium text-gray-700 shadow-sm">
+            class="answer-btn w-full bg-gray-100 hover:bg-indigo-50 focus:outline-none border-2 border-transparent hover:border-indigo-200 p-4 rounded-xl text-left transition font-medium text-gray-700 shadow-sm">
             ${answer.text}
           </button>
         `).join('')}
