@@ -5,3 +5,15 @@
 button {
   -webkit-tap-highlight-color: transparent;
 }
+
+@media (hover: hover) {
+  .desktop-hover:hover {
+    background-color: #eef2ff;
+    border-color: #c7d2fe;
+  }
+}
+
+.answer-btn:active {
+  background-color: #eef2ff;
+  border-color: #c7d2fe;
+}

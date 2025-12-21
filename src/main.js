@@ -235,7 +235,7 @@ function renderGameScreen() {
         ${answers.map(answer => `
           <button 
             data-correct="${answer.correct}"
-            class="answer-btn w-full bg-gray-100 hover:bg-indigo-50 focus:outline-none border-2 border-transparent hover:border-indigo-200 p-4 rounded-xl text-left transition font-medium text-gray-700 shadow-sm">
+            class="answer-btn desktop-hover w-full bg-gray-100 border-2 border-transparent p-4 rounded-xl text-left transition font-medium text-gray-700 shadow-sm focus:outline-none">
             ${answer.text}
           </button>
         `).join('')}
