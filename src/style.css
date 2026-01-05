@@ -7,9 +7,9 @@ button {
 }
 
 @media (hover: hover) {
-  .desktop-hover:hover {
-    background-color: #eef2ff;
-    border-color: #c7d2fe;
+  .desktop-hover:not(:disabled):hover {
+    background-color: #eef2ff; 
+    border-color: #c7d2fe;    
   }
 }
 
